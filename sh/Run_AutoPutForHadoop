@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Define the Hadoop repository root directory
+HADOOP_REPO_DIR="/Users/elen_chatikyan/Documents/CS527_repos/UT-to-PUT_CS527-project/AutoPUT/subjects/hadoop"
+
+# Define the class path
+CLASS_PATH="target/classes:target/test-classes:target/dependency/*"
+OUTPUT_CSV="Hadoop_AutoPut_output.csv"
+
+echo "Processing"
+find "$HADOOP_REPO_DIR" -type d -name "src" -exec sh -c '
+    
+    parent_folder="$(dirname "$0")"
+    folder_path="${parent_folder#*$HADOOP_REPO_DIR}"
+    relative_path="${parent_folder#*"/subjects"}"
+    echo "Processing folder: $relative_path"
+
+     # Execute the commands and write the output
+    detect_output=$(java -Xms6400m -cp '"$CLASS_PATH"' jp.mzw.autoput.Main "$relative_path" detect 2>&1)
+    generate_output=$(java -Xms6400m -cp '"$CLASS_PATH"' jp.mzw.autoput.Main "$relative_path" generate 2>&1)
+    requirement_output=$(java -Xms6400m -cp '"$CLASS_PATH"' jp.mzw.autoput.Main "$relative_path" requirement 2>&1)
+
+    # Append results to the CSV file
+    echo "$relative_path,detect,$detect_output" >> '"$OUTPUT_CSV"'
+    echo "$relative_path,generate,$generate_output" >> '"$OUTPUT_CSV"'
+    echo "$relative_path,requirement,$requirement_output" >> '"$OUTPUT_CSV"'
+
+' {} \;
+
